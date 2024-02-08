@@ -1,0 +1,421 @@
+﻿@page "/Events"
+@using BitEvents.UI.Models.Responses
+@using BitEvents.Api.Contracts.QueryFilters
+@using BitEvents.UI.Models.Partials
+@inject HttpClient HttpClient
+
+<h3>Events</h3>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <label for="titleFilter" class="form-label">Title:</label>
+        <input id="titleFilter" type="text" class="form-control" placeholder="Title" @bind="_filter.Title"/>
+    </div>
+    <div class="col-md-3">
+        <label for="descriptionFilter" class="form-label">Description:</label>
+        <input id="descriptionFilter" type="text" class="form-control" placeholder="Description" @bind="_filter.Description"/>
+    </div>
+    <div class="col-md-3">
+        <label for="minStartingDateFilter" class="form-label">Min Starting Date:</label>
+        <input id="minStartingDateFilter" type="date" class="form-control" @bind="_filter.MinStartingDate"/>
+    </div>
+    <div class="col-md-3">
+        <label for="maxStartingDateFilter" class="form-label">Max Starting Date:</label>
+        <input id="maxStartingDateFilter" type="date" class="form-control" @bind="_filter.MaxStartingDate"/>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <label for="guestsListFilter" class="form-label">Guests List:</label>
+        <input id="guestsListFilter" type="text" class="form-control" placeholder="Guests List" @bind="_filter.GuestsList"/>
+    </div>
+    <div class="col-md-3">
+        <label for="competitorsListFilter" class="form-label">Competitors List:</label>
+        <input id="competitorsListFilter" type="text" class="form-control" placeholder="Competitors List" @bind="_filter.CompetitorsList"/>
+    </div>
+    <div class="col-md-3">
+        <label for="minCapacityFilter" class="form-label">Min Capacity:</label>
+        <input id="minCapacityFilter" type="number" class="form-control" placeholder="Min Capacity" @bind="_filter.MinCapacity"/>
+    </div>
+    <div class="col-md-3">
+        <label for="maxCapacityFilter" class="form-label">Max Capacity:</label>
+        <input id="maxCapacityFilter" type="number" class="form-control" placeholder="Max Capacity" @bind="_filter.MaxCapacity"/>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <label for="minTicketPriceFilter" class="form-label">Min Ticket Price:</label>
+        <input id="minTicketPriceFilter" type="number" class="form-control" placeholder="Min Ticket Price" @bind="_filter.MinTicketPrice"/>
+    </div>
+    <div class="col-md-3">
+        <label for="maxTicketPriceFilter" class="form-label">Max Ticket Price:</label>
+        <input id="maxTicketPriceFilter" type="number" class="form-control" placeholder="Max Ticket Price" @bind="_filter.MaxTicketPrice"/>
+    </div>
+    <div class="col-md-3">
+        <label for="streetFilter" class="form-label">Street:</label>
+        <input id="streetFilter" type="text" class="form-control" placeholder="Street" @bind="_filter.Street"/>
+    </div>
+    <div class="col-md-3">
+        <label for="locationIdFilter" class="form-label">Location ID:</label>
+        <input id="locationIdFilter" type="text" class="form-control" placeholder="Location ID" @bind="_filter.LocationId"/>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <label for="categoryIdFilter" class="form-label">Category ID:</label>
+        <input id="categoryIdFilter" type="text" class="form-control" placeholder="Category ID" @bind="_filter.CategoryId"/>
+    </div>
+    <div class="col-md-3">
+        <label for="minViewsFilter" class="form-label">Min Views:</label>
+        <input id="minViewsFilter" type="number" class="form-control" placeholder="Min Views" @bind="_filter.MinViews"/>
+    </div>
+    <div class="col-md-3">
+        <label for="maxViewsFilter" class="form-label">Max Views:</label>
+        <input id="maxViewsFilter" type="number" class="form-control" placeholder="Max Views" @bind="_filter.MaxViews"/>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <label for="minGoingFilter" class="form-label">Min Going:</label>
+        <input id="minGoingFilter" type="number" class="form-control" placeholder="Min Going" @bind="_filter.MinGoing"/>
+    </div>
+    <div class="col-md-3">
+        <label for="maxGoingFilter" class="form-label">Max Going:</label>
+        <input id="maxGoingFilter" type="number" class="form-control" placeholder="Max Going" @bind="_filter.MaxGoing"/>
+    </div>
+    <div class="col-md-3">
+        <label for="minFavouritesFilter" class="form-label">Min Favourites:</label>
+        <input id="minFavouritesFilter" type="number" class="form-control" placeholder="Min Favourites" @bind="_filter.MinFavourites"/>
+    </div>
+    <div class="col-md-3">
+        <label for="maxFavouritesFilter" class="form-label">Max Favourites:</label>
+        <input id="maxFavouritesFilter" type="number" class="form-control" placeholder="Max Favourites" @bind="_filter.MaxFavourites"/>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3 mt-2">
+        <button class="btn btn-primary" @onclick="async () => await GetEvents()">Apply Filters</button>
+    </div>
+</div>
+
+
+@if (_events.Any())
+{
+    <div class="row">
+        @foreach (var eventItem in _events)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <img src="https://uploads.sarvgyan.com/2014/08/event-management.jpg" class="card-img-top" alt="Event Image">
+                    <div class="card-body" style="height: 200px; overflow: hidden;">
+                        <h5 class="card-title">@eventItem.Title</h5>
+                        <p class="card-text">@eventItem.Description</p>
+                        <p class="card-text">
+                            <strong>Starting Date:</strong> @eventItem.StartingDate.ToString("MM/dd/yyyy HH:mm")
+                        </p>
+                        <p class="card-text">
+                            <strong>Ending Date:</strong> @eventItem.EndingDate.ToString("MM/dd/yyyy HH:mm")
+                        </p>
+                        <!-- Add more details as needed -->
+                        <a href="#" class="btn btn-primary">Details</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <p>No events available.</p>
+}
+
+@code {
+    private List<EventViewResponse> _events = [];
+    private readonly EventQueryFilter _filter = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetEvents();
+        _events = MockEvents();
+    }
+
+    private async Task GetEvents()
+    {
+        _events = (await HttpClient.GetFromJsonAsync<List<EventViewResponse>>("https://localhost:7123/events"))!;
+    }
+
+
+    private List<EventViewResponse> MockEvents()
+    {
+        var events = new List<EventViewResponse>
+        {
+            new EventViewResponse
+            {
+                Id = "1",
+                CreatedAtUtc = DateTime.UtcNow,
+                UpdatedAtUtc = DateTime.UtcNow,
+                Title = "Event 1",
+                Description = "Description for Event 1",
+                StartingDate = DateTime.UtcNow.AddHours(1),
+                EndingDate = DateTime.UtcNow.AddHours(3),
+                ImageUrls = new List<string> { "image1.jpg" },
+                Guests = new List<string> { "Guest1A", "Guest1B" },
+                Competitors = new List<string> { "Competitor1A", "Competitor1B" },
+                Capacity = 100,
+                TicketPrice = 10.99,
+                TicketUrl = "https://tickets.example.com/event1",
+                Sponsors = new List<string> { "Sponsor1A", "Sponsor1B" },
+                Sponsored = true,
+                Location = new LocationPartial { Id = "Loc1", Name = "Location 1" },
+                Category = new CategoryPartial { Id = "Cat1", Name = "Category 1" },
+                Street = "123 Main Street",
+                Latitude = 34.0522,
+                Longitude = -118.2437,
+                Views = 150,
+                Going = 20,
+                Favourites = 5
+            },
+            new EventViewResponse
+            {
+                Id = "2",
+                CreatedAtUtc = DateTime.UtcNow,
+                UpdatedAtUtc = DateTime.UtcNow,
+                Title = "Event 2",
+                Description = "Description for Event 2",
+                StartingDate = DateTime.UtcNow.AddHours(2),
+                EndingDate = DateTime.UtcNow.AddHours(4),
+                ImageUrls = new List<string> { "image2.jpg" },
+                Guests = new List<string> { "Guest2A", "Guest2B" },
+                Competitors = new List<string> { "Competitor2A", "Competitor2B" },
+                Capacity = 150,
+                TicketPrice = 15.99,
+                TicketUrl = "https://tickets.example.com/event2",
+                Sponsors = new List<string> { "Sponsor2A", "Sponsor2B" },
+                Sponsored = false,
+                Location = new LocationPartial { Id = "Loc2", Name = "Location 2" },
+                Category = new CategoryPartial { Id = "Cat2", Name = "Category 2" },
+                Street = "456 Oak Avenue",
+                Latitude = 34.0522,
+                Longitude = -118.2437,
+                Views = 200,
+                Going = 30,
+                Favourites = 8
+            },
+            new EventViewResponse
+            {
+                Id = "3",
+                CreatedAtUtc = DateTime.UtcNow,
+                UpdatedAtUtc = DateTime.UtcNow,
+                Title = "Event 3",
+                Description = "Description for Event 3",
+                StartingDate = DateTime.UtcNow.AddHours(3),
+                EndingDate = DateTime.UtcNow.AddHours(6),
+                ImageUrls = new List<string> { "image3.jpg" },
+                Guests = new List<string> { "Guest3A", "Guest3B" },
+                Competitors = new List<string> { "Competitor3A", "Competitor3B" },
+                Capacity = 200,
+                TicketPrice = 25.99,
+                TicketUrl = "https://tickets.example.com/event3",
+                Sponsors = new List<string> { "Sponsor3A", "Sponsor3B" },
+                Sponsored = true,
+                Location = new LocationPartial { Id = "Loc3", Name = "Location 3" },
+                Category = new CategoryPartial { Id = "Cat3", Name = "Category 3" },
+                Street = "789 Pine Street",
+                Latitude = 34.0522,
+                Longitude = -118.2437,
+                Views = 300,
+                Going = 50,
+                Favourites = 10
+            },
+            new EventViewResponse
+            {
+                Id = "4",
+                CreatedAtUtc = DateTime.UtcNow,
+                UpdatedAtUtc = DateTime.UtcNow,
+                Title = "Event 4",
+                Description = "Description for Event 4",
+                StartingDate = DateTime.UtcNow.AddHours(4),
+                EndingDate = DateTime.UtcNow.AddHours(8),
+                ImageUrls = new List<string> { "image4.jpg" },
+                Guests = new List<string> { "Guest4A", "Guest4B" },
+                Competitors = new List<string> { "Competitor4A", "Competitor4B" },
+                Capacity = 120,
+                TicketPrice = 20.99,
+                TicketUrl = "https://tickets.example.com/event4",
+                Sponsors = new List<string> { "Sponsor4A", "Sponsor4B" },
+                Sponsored = false,
+                Location = new LocationPartial { Id = "Loc4", Name = "Location 4" },
+                Category = new CategoryPartial { Id = "Cat4", Name = "Category 4" },
+                Street = "101 Elm Street",
+                Latitude = 34.0522,
+                Longitude = -118.2437,
+                Views = 250,
+                Going = 40,
+                Favourites = 7
+            },
+            new EventViewResponse
+            {
+                Id = "5",
+                CreatedAtUtc = DateTime.UtcNow,
+                UpdatedAtUtc = DateTime.UtcNow,
+                Title = "Event 5",
+                Description = "Description for Event 5",
+                StartingDate = DateTime.UtcNow.AddHours(5),
+                EndingDate = DateTime.UtcNow.AddHours(10),
+                ImageUrls = new List<string> { "image5.jpg" },
+                Guests = new List<string> { "Guest5A", "Guest5B" },
+                Competitors = new List<string> { "Competitor5A", "Competitor5B" },
+                Capacity = 180,
+                TicketPrice = 22.99,
+                TicketUrl = "https://tickets.example.com/event5",
+                Sponsors = new List<string> { "Sponsor5A", "Sponsor5B" },
+                Sponsored = true,
+                Location = new LocationPartial { Id = "Loc5", Name = "Location 5" },
+                Category = new CategoryPartial { Id = "Cat5", Name = "Category 5" },
+                Street = "202 Maple Avenue",
+                Latitude = 34.0522,
+                Longitude = -118.2437,
+                Views = 280,
+                Going = 45,
+                Favourites = 12
+            },
+            new EventViewResponse
+            {
+                Id = "6",
+                CreatedAtUtc = DateTime.UtcNow,
+                UpdatedAtUtc = DateTime.UtcNow,
+                Title = "Event 6",
+                Description = "Description for Event 6",
+                StartingDate = DateTime.UtcNow.AddHours(6),
+                EndingDate = DateTime.UtcNow.AddHours(12),
+                ImageUrls = new List<string> { "image6.jpg" },
+                Guests = new List<string> { "Guest6A", "Guest6B" },
+                Competitors = new List<string> { "Competitor6A", "Competitor6B" },
+                Capacity = 160,
+                TicketPrice = 18.99,
+                TicketUrl = "https://tickets.example.com/event6",
+                Sponsors = new List<string> { "Sponsor6A", "Sponsor6B" },
+                Sponsored = false,
+                Location = new LocationPartial { Id = "Loc6", Name = "Location 6" },
+                Category = new CategoryPartial { Id = "Cat6", Name = "Category 6" },
+                Street = "303 Oak Street",
+                Latitude = 34.0522,
+                Longitude = -118.2437,
+                Views = 220,
+                Going = 35,
+                Favourites = 9
+            },
+            new EventViewResponse
+            {
+                Id = "7",
+                CreatedAtUtc = DateTime.UtcNow,
+                UpdatedAtUtc = DateTime.UtcNow,
+                Title = "Event 7",
+                Description = "Description for Event 7",
+                StartingDate = DateTime.UtcNow.AddHours(7),
+                EndingDate = DateTime.UtcNow.AddHours(14),
+                ImageUrls = new List<string> { "image7.jpg" },
+                Guests = new List<string> { "Guest7A", "Guest7B" },
+                Competitors = new List<string> { "Competitor7A", "Competitor7B" },
+                Capacity = 140,
+                TicketPrice = 16.99,
+                TicketUrl = "https://tickets.example.com/event7",
+                Sponsors = new List<string> { "Sponsor7A", "Sponsor7B" },
+                Sponsored = true,
+                Location = new LocationPartial { Id = "Loc7", Name = "Location 7" },
+                Category = new CategoryPartial { Id = "Cat7", Name = "Category 7" },
+                Street = "404 Pine Avenue",
+                Latitude = 34.0522,
+                Longitude = -118.2437,
+                Views = 200,
+                Going = 30,
+                Favourites = 8
+            },
+            new EventViewResponse
+            {
+                Id = "8",
+                CreatedAtUtc = DateTime.UtcNow,
+                UpdatedAtUtc = DateTime.UtcNow,
+                Title = "Event 8",
+                Description = "Description for Event 8",
+                StartingDate = DateTime.UtcNow.AddHours(8),
+                EndingDate = DateTime.UtcNow.AddHours(16),
+                ImageUrls = new List<string> { "image8.jpg" },
+                Guests = new List<string> { "Guest8A", "Guest8B" },
+                Competitors = new List<string> { "Competitor8A", "Competitor8B" },
+                Capacity = 120,
+                TicketPrice = 20.99,
+                TicketUrl = "https://tickets.example.com/event8",
+                Sponsors = new List<string> { "Sponsor8A", "Sponsor8B" },
+                Sponsored = false,
+                Location = new LocationPartial { Id = "Loc8", Name = "Location 8" },
+                Category = new CategoryPartial { Id = "Cat8", Name = "Category 8" },
+                Street = "505 Elm Avenue",
+                Latitude = 34.0522,
+                Longitude = -118.2437,
+                Views = 180,
+                Going = 25,
+                Favourites = 6
+            },
+            new EventViewResponse
+            {
+                Id = "9",
+                CreatedAtUtc = DateTime.UtcNow,
+                UpdatedAtUtc = DateTime.UtcNow,
+                Title = "Event 9",
+                Description = "Description for Event 9",
+                StartingDate = DateTime.UtcNow.AddHours(9),
+                EndingDate = DateTime.UtcNow.AddHours(18),
+                ImageUrls = new List<string> { "image9.jpg" },
+                Guests = new List<string> { "Guest9A", "Guest9B" },
+                Competitors = new List<string> { "Competitor9A", "Competitor9B" },
+                Capacity = 100,
+                TicketPrice = 15.99,
+                TicketUrl = "https://tickets.example.com/event9",
+                Sponsors = new List<string> { "Sponsor9A", "Sponsor9B" },
+                Sponsored = true,
+                Location = new LocationPartial { Id = "Loc9", Name = "Location 9" },
+                Category = new CategoryPartial { Id = "Cat9", Name = "Category 9" },
+                Street = "606 Maple Street",
+                Latitude = 34.0522,
+                Longitude = -118.2437,
+                Views = 150,
+                Going = 20,
+                Favourites = 5
+            },
+            new EventViewResponse
+            {
+                Id = "10",
+                CreatedAtUtc = DateTime.UtcNow,
+                UpdatedAtUtc = DateTime.UtcNow,
+                Title = "Event 10",
+                Description = "Description for Event 10",
+                StartingDate = DateTime.UtcNow.AddHours(10),
+                EndingDate = DateTime.UtcNow.AddHours(20),
+                ImageUrls = new List<string> { "image10.jpg" },
+                Guests = new List<string> { "Guest10A", "Guest10B" },
+                Competitors = new List<string> { "Competitor10A", "Competitor10B" },
+                Capacity = 130,
+                TicketPrice = 18.99,
+                TicketUrl = "https://tickets.example.com/event10",
+                Sponsors = new List<string> { "Sponsor10A", "Sponsor10B" },
+                Sponsored = false,
+                Location = new LocationPartial { Id = "Loc10", Name = "Location 10" },
+                Category = new CategoryPartial { Id = "Cat10", Name = "Category 10" },
+                Street = "707 Oak Street",
+                Latitude = 34.0522,
+                Longitude = -118.2437,
+                Views = 170,
+                Going = 22,
+                Favourites = 7
+            }
+        };
+        return events;
+    }
+
+}

@@ -29,19 +29,7 @@ public static class DbInitializer
             };
             (admin.PasswordSalt, admin.PasswordHash) = AuthHelpers.HashPassword("Sifra.1234");
             await userRepository.CreateUserAsync(admin);
-
-            var organization = new User
-            {
-                FirstName = "Organization",
-                LastName = "Organization",
-                Email = "org@test.rs",
-                Roles = new List<string> { "Organization" },
-                PasswordHash = "null",
-                PasswordSalt = "null",
-            };
-            (organization.PasswordSalt, organization.PasswordHash) = AuthHelpers.HashPassword("Sifra.1234");
-            await userRepository.CreateUserAsync(organization);
-
+            
             var user = new User
             {
                 FirstName = "User",

@@ -1,6 +1,6 @@
-﻿using BitEvents.Api.Models;
+﻿using BitEvents.UI.Models.Partials;
 
-namespace BitEvents.Api.Contracts.Responses;
+namespace BitEvents.UI.Models.Responses;
 
 public class EventViewResponse
 {
