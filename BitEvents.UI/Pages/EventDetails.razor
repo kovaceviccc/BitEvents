@@ -1,0 +1,98 @@
+﻿@page "/EventDetails/{id}"
+@using BitEvents.UI.Models.Responses
+@using Microsoft.AspNetCore.Authorization
+@inject HttpClient HttpClient
+
+<h3 class="mb-4">EventDetails</h3>
+
+@if (eventData == null)
+{
+    <div class="d-flex justify-content-center">
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h4 class="m-0 font-weight-bold text-primary">@eventData.Title</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-lg-6">
+                    <!-- Event Details -->
+                    <h5 class="font-weight-bold mb-3">Event Details:</h5>
+                    <p><strong>Description:</strong> @eventData.Description</p>
+                    <p><strong>Starting Date:</strong> @eventData.StartingDate.ToString("d")</p>
+                    <p><strong>Ending Date:</strong> @eventData.EndingDate.ToString("d")</p>
+                    <p><strong>Capacity:</strong> @eventData.Capacity</p>
+                    <p><strong>Ticket Price:</strong> @eventData.TicketPrice</p>
+                    <p><strong>Ticket Url:</strong> <a href="@eventData.TicketUrl">@eventData.TicketUrl</a></p>
+                    <p><strong>Sponsored:</strong> @eventData.Sponsored</p>
+                    <p><strong>Location:</strong> @eventData.Location.Name</p>
+                    <p><strong>Category:</strong> @eventData.Category.Name</p>
+                    <p><strong>Street:</strong> @eventData.Street</p>
+                    <p><strong>Latitude:</strong> @eventData.Latitude</p>
+                    <p><strong>Longitude:</strong> @eventData.Longitude</p>
+                    <p><strong>Views:</strong> @eventData.Views</p>
+                    <p><strong>Going:</strong> @eventData.Going</p>
+                    <p><strong>Favourites:</strong> @eventData.Favourites</p>
+                </div>
+                <div class="col-lg-6">
+                    <!-- Image Gallery -->
+                    <h5 class="font-weight-bold mb-3">Image Gallery:</h5>
+                    <div class="row">
+                        @foreach (var url in eventData.ImageUrls)
+                        {
+                            <div class="col-lg-4 col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <a href="#"><img class="card-img-top" src="@url" alt="Event image"></a>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <!-- Guests -->
+                    <h5 class="font-weight-bold mt-4 mb-3">Guests:</h5>
+                    <ul class="list-group">
+                        @foreach (var guest in eventData.Guests)
+                        {
+                            <li class="list-group-item">@guest</li>
+                        }
+                    </ul>
+                    <!-- Competitors -->
+                    <h5 class="font-weight-bold mt-4 mb-3">Competitors:</h5>
+                    <ul class="list-group">
+                        @foreach (var competitor in eventData.Competitors)
+                        {
+                            <li class="list-group-item">@competitor</li>
+                        }
+                    </ul>
+                    <!-- Sponsors -->
+                    <h5 class="font-weight-bold mt-4 mb-3">Sponsors:</h5>
+                    <ul class="list-group">
+                        @foreach (var sponsor in eventData.Sponsors)
+                        {
+                            <li class="list-group-item">@sponsor</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private EventViewResponse eventData;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Delay(1000);
+        eventData =  (await HttpClient.GetFromJsonAsync<EventViewResponse>($"{ApiConstants.BaseUrl}/events/{Id}"))!;
+    }
+}
+

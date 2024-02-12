@@ -2,7 +2,7 @@
 
 public static class ApiConstants
 {
-    public static string BaseUrl = "";
-    public static string Token = "";
-    public static string RefreshToken = "";
+    public static readonly string BaseUrl = "https://localhost:7123";
+    public static readonly string TokenKey = "token";
+    public static readonly string RefreshTokenKey = "refreshToken"; 
 }

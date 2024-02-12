@@ -1,0 +1,144 @@
+﻿@page "/users"
+@using Microsoft.AspNetCore.Authorization
+@using BitEvents.UI.Models.Responses
+@using BitEvents.UI.Shared
+@using Blazored.LocalStorage
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject HttpClient HttpClient
+@inject ILocalStorageService LocalStorageService
+@inject NavigationManager NavigationManager
+@attribute [Authorize(Roles = "Admin")]
+
+<h3 class="mb-4">Users</h3>
+
+<AuthorizeView>
+    <Authorized>
+        <div class="form-check mb-4">
+            <input class="form-check-input" type="checkbox" value="" id="includeDeletedCheck" @onchange="ToggleIncludeDeleted"/>
+            <label class="form-check-label" for="includeDeletedCheck">
+                Include Blocked Users
+            </label>
+        </div>
+        @if (users == null)
+        {
+            <p>Loading...</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered">
+                    <thead class="table-dark">
+                    <tr>
+                        <th>Id</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Email</th>
+                        <th>Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var user in users)
+                    {
+                        <tr>
+                            <td>@user.Id</td>
+                            <td>@user.FirstName</td>
+                            <td>@user.LastName</td>
+                            <td>@user.Email</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" @onclick="() => BlockUser(user.Id)">Block User</button>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+
+            <nav aria-label="Page navigation example">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @(hasPreviousPage ? "" : "disabled")">
+                        <a class="page-link" @onclick="LoadPreviousPage">Previous</a>
+                    </li>
+                    <li class="page-item @(hasNextPage ? "" : "disabled")">
+                        <a class="page-link" @onclick="LoadNextPage">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        }
+
+    </Authorized>
+    <NotAuthorized>
+        <div>You do not have permission to view this page!</div>
+        <div>Navigating to home page....</div>
+        
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private int currentPage = 1;
+    private bool hasNextPage = true;
+    private bool hasPreviousPage = true;
+    private readonly int pageSize = 2;
+    private bool includeDeleted = false;
+    private List<UserViewResponse> users = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        
+        var user = authState.User;
+        
+        if (user.Identity != null && (!user.Identity.IsAuthenticated || user.IsInRole("Admin")))
+        {
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            await LoadUsers();
+        }
+    }
+
+    private async Task LoadUsers()
+    {
+        var token = await (AuthenticationStateProvider as AuthStateProvider)!.GetTokenAsync();
+        HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+        var response = await HttpClient.GetFromJsonAsync<List<UserViewResponse>>($"users?pagesize={pageSize}&pagenumber={currentPage}&showDeleted={includeDeleted}");
+        users = response!;
+
+        hasNextPage = users.Count == pageSize; // Assuming your API returns 10 items per page
+        hasPreviousPage = currentPage > 1;
+    }
+
+    private async Task LoadNextPage()
+    {
+        currentPage++;
+        await LoadUsers();
+    }
+
+    private async Task LoadPreviousPage()
+    {
+        currentPage--;
+        await LoadUsers();
+    }
+
+    private async Task BlockUser(string userId)
+    {
+        var token = await LocalStorageService.GetItemAsync<string>("token");
+        HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+        var response = await HttpClient.DeleteAsync($"/users/{userId}");
+        if (response.IsSuccessStatusCode)
+        {
+            // Reload the users to reflect the change
+            await LoadUsers();
+        }
+    }
+
+    private async Task ToggleIncludeDeleted(ChangeEventArgs e)
+    {
+        includeDeleted = (bool)e.Value;
+        await LoadUsers();
+    }
+
+}

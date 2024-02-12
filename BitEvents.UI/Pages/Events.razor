@@ -122,7 +122,7 @@
                             <strong>Ending Date:</strong> @eventItem.EndingDate.ToString("MM/dd/yyyy HH:mm")
                         </p>
                         <!-- Add more details as needed -->
-                        <a href="#" class="btn btn-primary">Details</a>
+                        <a href="@($"/EventDetails/{eventItem.Id}")" class="btn btn-primary">Details</a>
                     </div>
                 </div>
             </div>
@@ -141,15 +141,14 @@ else
     protected override async Task OnInitializedAsync()
     {
         await GetEvents();
-        _events = MockEvents();
+        //_events = MockEvents();
     }
 
     private async Task GetEvents()
     {
-        _events = (await HttpClient.GetFromJsonAsync<List<EventViewResponse>>("https://localhost:7123/events"))!;
+        _events = (await HttpClient.GetFromJsonAsync<List<EventViewResponse>>($"{ApiConstants.BaseUrl}/events"))!;
     }
-
-
+    
     private List<EventViewResponse> MockEvents()
     {
         var events = new List<EventViewResponse>
