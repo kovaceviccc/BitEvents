@@ -37,8 +37,23 @@ public class AuthStateProvider : AuthenticationStateProvider
         var jwtToken = tokenHandler.ReadToken(token) as JwtSecurityToken;
 
         if (jwtToken is null) return Enumerable.Empty<Claim>();
+
+        List<Claim> claims = [];
         
-        return jwtToken?.Claims!;
+        foreach (var claim in jwtToken.Claims)
+        {
+            // If the claim type is "Roles", add a new claim with type "role"
+            if (claim.Type == "Roles")
+            {
+                claims.Add(new Claim(ClaimTypes.Role, claim.Value));
+            }
+            else
+            {
+                claims.Add(claim);
+            }
+        }
+        return claims;
+
     }
 
     public void NotifyAuthState()

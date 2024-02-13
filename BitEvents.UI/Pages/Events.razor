@@ -3,8 +3,11 @@
 @using BitEvents.Api.Contracts.QueryFilters
 @using BitEvents.UI.Models.Partials
 @inject HttpClient HttpClient
+@inject NavigationManager NavManager
 
 <h3>Events</h3>
+
+<button class="btn btn-primary mb-4" @onclick="NavigateToAddEventPage">Add Event</button>
 
 <div class="row mb-4">
     <div class="col-md-3">
@@ -148,7 +151,7 @@ else
     {
         _events = (await HttpClient.GetFromJsonAsync<List<EventViewResponse>>($"{ApiConstants.BaseUrl}/events"))!;
     }
-    
+
     private List<EventViewResponse> MockEvents()
     {
         var events = new List<EventViewResponse>
@@ -415,6 +418,11 @@ else
             }
         };
         return events;
+    }
+
+    private void NavigateToAddEventPage()
+    {
+        NavManager.NavigateTo("/AddEvent");
     }
 
 }

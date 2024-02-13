@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace BitEvents.Api.Contracts.Requests;
+namespace BitEvents.UI.Models.Requests;
 
 public sealed class EventCreateRequest
 {
@@ -12,7 +12,7 @@ public sealed class EventCreateRequest
     public List<string> ImageUrls { get; set; } = new();
     public List<string> Guests { get; set; } = new();
     public List<string> Competitors { get; set; } = new();
-    public required ulong Capacity { get; set; }
+    public required int Capacity { get; set; }
     public double? TicketPrice { get; set; }
     public string? TicketUrl { get; set; }
     public List<string> Sponsors { get; set; } = new();

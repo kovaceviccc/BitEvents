@@ -7,7 +7,7 @@
 @inject HttpClient HttpClient
 @inject ILocalStorageService LocalStorageService
 @inject NavigationManager NavigationManager
-@attribute [Authorize(Roles = "Admin")]
+@attribute [Authorize (Roles = "Admin")]
 
 <h3 class="mb-4">Users</h3>
 
@@ -66,11 +66,6 @@
         }
 
     </Authorized>
-    <NotAuthorized>
-        <div>You do not have permission to view this page!</div>
-        <div>Navigating to home page....</div>
-        
-    </NotAuthorized>
 </AuthorizeView>
 
 @code {
@@ -88,7 +83,7 @@
         
         var user = authState.User;
         
-        if (user.Identity != null && (!user.Identity.IsAuthenticated || user.IsInRole("Admin")))
+        if (!user.Identity.IsAuthenticated || !user.IsInRole("Admin"))
         {
             NavigationManager.NavigateTo("/");
         }
@@ -137,7 +132,7 @@
 
     private async Task ToggleIncludeDeleted(ChangeEventArgs e)
     {
-        includeDeleted = (bool)e.Value;
+        includeDeleted = (bool)e.Value!;
         await LoadUsers();
     }
 

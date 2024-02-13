@@ -24,6 +24,13 @@
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Events
             </NavLink>
         </div>
+        <AuthorizeView Roles="Admin">
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="users">
+                    <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Users
+                </NavLink>
+            </div>
+        </AuthorizeView>
         <AuthorizeView>
             <NotAuthorized>
                 <div class="nav-item px-3">
@@ -33,11 +40,7 @@
                 </div>
             </NotAuthorized>
             <Authorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="users">
-                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Users
-                    </NavLink>
-                </div>
+
                 <button class="btn btn-primary" @onclick=" async () => await Logout()">Logout</button>
             </Authorized>
         </AuthorizeView>

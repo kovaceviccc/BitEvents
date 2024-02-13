@@ -2,6 +2,7 @@
 @using BitEvents.UI.Models.Responses
 @using BitEvents.UI.Shared
 @using Blazored.LocalStorage
+@using BitEvents.UI.Models.Requests
 @inject HttpClient HttpClient
 @inject ILocalStorageService LocalStorageService
 @inject NavigationManager Navigation
@@ -47,8 +48,8 @@
 
 @code {
     private bool showLoginForm = true;
-    private LoginModel loginModel = new LoginModel();
-    private RegisterModel registerModel = new RegisterModel();
+    private AuthenticateRequest loginModel = new();
+    private UserCreateRequest registerModel = new();
 
 
     
@@ -76,18 +77,5 @@
             showLoginForm = true;
         }
     }
-
-    public class LoginModel
-    {
-        public string Email { get; set; }
-        public string Password { get; set; }
-    }
-
-    public class RegisterModel
-    {
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string Email { get; set; }
-        public string Password { get; set; }
-    }
+    
 }

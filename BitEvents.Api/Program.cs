@@ -125,4 +125,10 @@ app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseEndpoints<Program>();
 
+app.MapGet("/", context =>
+{
+    context.Response.Redirect("/swagger/");
+    return Task.CompletedTask;
+});
+
 app.Run();

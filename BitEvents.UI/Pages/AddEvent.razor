@@ -1,0 +1,148 @@
+﻿@page "/AddEvent"
+@using BitEvents.UI.Models.Requests
+@using BitEvents.UI.Models.Partials
+@using Blazored.LocalStorage
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+@inject ILocalStorageService LocalStorageService
+
+<AuthorizeView>
+    <Authorized>
+        <h3>Add Event</h3>
+
+        <EditForm Model="newEvent" OnValidSubmit="HandleSubmit" Context="formContext">
+            <div class="row">
+                <div class="col-md-6 form-group">
+                    <label for="title">Title</label>
+                    <InputText id="title" class="form-control" @bind-Value="newEvent.Title" />
+                </div>
+
+                <div class="col-md-6 form-group">
+                    <label for="description">Description</label>
+                    <InputTextArea id="description" class="form-control" @bind-Value="newEvent.Description" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 form-group">
+                    <label for="startingDate">Starting Date</label>
+                    <InputDate id="startingDate" class="form-control" @bind-Value="newEvent.StartingDate" />
+                </div>
+
+                <div class="col-md-6 form-group">
+                    <label for="endingDate">Ending Date</label>
+                    <InputDate id="endingDate" class="form-control" @bind-Value="newEvent.EndingDate" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 form-group">
+                    <label for="capacity">Capacity</label>
+                    <InputNumber id="capacity" class="form-control" @bind-Value="newEvent.Capacity" />
+                </div>
+
+                <div class="col-md-6 form-group">
+                    <label for="ticketPrice">Ticket Price</label>
+                    <InputNumber id="ticketPrice" class="form-control" @bind-Value="newEvent.TicketPrice" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 form-group">
+                    <label for="ticketUrl">Ticket Url</label>
+                    <InputText id="ticketUrl" class="form-control" @bind-Value="newEvent.TicketUrl" />
+                </div>
+
+                <div class="col-md-6 form-group">
+                    <label for="locationId">Location</label>
+                    <InputSelect id="locationId" class="form-control" @bind-Value="newEvent.LocationId">
+                        <option value="">Select location</option>
+                        @foreach (var location in locations)
+                        {
+                            <option value="@location.Id">@location.Name</option>
+                        }
+                    </InputSelect>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 form-group">
+                    <label for="categoryId">Category</label>
+                    <InputSelect id="categoryId" class="form-control" @bind-Value="newEvent.CategoryId">
+                        <option value="">Select category</option>
+                        @foreach (var category in categories)
+                        {
+                            <option value="@category.Id">@category.Name</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                <div class="col-md-6 form-group">
+                    <label for="street">Street</label>
+                    <InputText id="street" class="form-control" @bind-Value="newEvent.Street" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 form-group">
+                    <label for="latitude">Latitude</label>
+                    <InputNumber id="latitude" class="form-control" @bind-Value="newEvent.Latitude" />
+                </div>
+
+                <div class="col-md-6 form-group">
+                    <label for="longitude">Longitude</label>
+                    <InputNumber id="longitude" class="form-control" @bind-Value="newEvent.Longitude" />
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </EditForm>
+    </Authorized>
+    <NotAuthorized>
+        @{
+            NavigationManager.NavigateTo("/loginregister");
+        }
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private EventCreateRequest newEvent = new()
+    {
+        Title = string.Empty,
+        Description = string.Empty,
+        StartingDate = DateTime.Now,
+        EndingDate = DateTime.Now,
+        Capacity = 0,
+        LocationId = string.Empty,
+        CategoryId = String.Empty,
+        Street = string.Empty,
+        Latitude = 0,
+        Longitude = 0
+    };
+
+    private List<CategoryPartial> categories = new();
+    private List<LocationPartial> locations = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        categories = (await HttpClient.GetFromJsonAsync<List<CategoryPartial>>($"{ApiConstants.BaseUrl}/categories"))!;
+        locations = (await HttpClient.GetFromJsonAsync<List<LocationPartial>>($"{ApiConstants.BaseUrl}/locations"))!;
+    }
+
+    private async Task HandleSubmit()
+    {
+        var token = await LocalStorageService.GetItemAsync<string>("token");
+        if (!string.IsNullOrEmpty(token))
+        {
+            HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        }
+
+        var response = await HttpClient.PostAsJsonAsync($"{ApiConstants.BaseUrl}/events", newEvent);
+        if (response.IsSuccessStatusCode)
+        {
+            NavigationManager.NavigateTo("/events");
+        }
+        
+        Console.Write(response.ReasonPhrase);
+    }
+}
