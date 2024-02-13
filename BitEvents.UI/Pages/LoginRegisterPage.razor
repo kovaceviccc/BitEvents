@@ -1,0 +1,93 @@
+﻿@page "/loginregister"
+@using BitEvents.UI.Models.Responses
+@using BitEvents.UI.Shared
+@using Blazored.LocalStorage
+@inject HttpClient HttpClient
+@inject ILocalStorageService LocalStorageService
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<h3>LoginRegisterPage</h3>
+
+<AuthorizeView>
+    <NotAuthorized>
+        @if (showLoginForm)
+        {
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Login</h5>
+                    <input type="text" class="form-control" placeholder="Email" @bind="loginModel.Email" />
+                    <input type="text" class="form-control" placeholder="Password" @bind="loginModel.Password" />
+                    <button class="btn btn-primary" @onclick="async () => await HandleLogin()">Login</button>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Register</h5>
+                    <input type="text" class="form-control" placeholder="First name" @bind="registerModel.FirstName" />
+                    <input type="text" class="form-control" placeholder="Last name" @bind="registerModel.LastName" />
+                    <input type="text" class="form-control" placeholder="Email" @bind="registerModel.Email" />
+                    <input type="password" class="form-control" placeholder="Password" @bind="registerModel.Password" />
+                    <button class="btn btn-primary" @onclick=" async () => await HandleRegister()">Register</button>
+                </div>
+            </div>
+        }
+        
+        <button class="btn btn-secondary" @onclick="ToggleForm">Switch to @(showLoginForm ? "Register" : "Login")</button>
+    </NotAuthorized>
+    <Authorized>
+        @{
+            Navigation.NavigateTo("/");
+        }
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    private bool showLoginForm = true;
+    private LoginModel loginModel = new LoginModel();
+    private RegisterModel registerModel = new RegisterModel();
+
+
+    
+    private void ToggleForm()
+    {
+        showLoginForm = !showLoginForm;
+    }
+
+    private async Task HandleLogin()
+    {
+        var response = await HttpClient.PostAsJsonAsync("/authenticate", loginModel);
+        if (response.IsSuccessStatusCode)
+        {
+            var tokenResponse = await response.Content.ReadFromJsonAsync<TokenResponse>();
+            await (AuthenticationStateProvider as AuthStateProvider)!.Login(tokenResponse!);
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task HandleRegister()
+    {
+        var response = await HttpClient.PostAsJsonAsync("/users", registerModel);
+        if (response.IsSuccessStatusCode)
+        {
+            showLoginForm = true;
+        }
+    }
+
+    public class LoginModel
+    {
+        public string Email { get; set; }
+        public string Password { get; set; }
+    }
+
+    public class RegisterModel
+    {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Email { get; set; }
+        public string Password { get; set; }
+    }
+}
