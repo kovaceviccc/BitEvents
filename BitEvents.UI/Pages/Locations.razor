@@ -1,0 +1,134 @@
+﻿@page "/locations"
+@using Microsoft.AspNetCore.Authorization
+@using BitEvents.UI.Models.Responses
+@using BitEvents.UI.Shared
+@using Blazored.LocalStorage
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject HttpClient HttpClient
+@inject ILocalStorageService LocalStorageService
+@inject NavigationManager NavigationManager
+@attribute [Authorize (Roles = "Admin")]
+
+<h3 class="mb-4">Locations</h3>
+
+<AuthorizeView>
+    <Authorized>
+        @if (locations.Count == 0)
+        {
+            <p>Loading...</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered">
+                    <thead class="table-dark">
+                    <tr>
+                        <th>Id</th>
+                        <th>Name</th>
+                        <th>Created at</th>
+                        <th>Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var location in locations)
+                    {
+                        <tr>
+                            <td>@location.Id</td>
+                            <td><input type="text" @bind="@location.Name" /></td>
+                            <td>@location.CreatedAtUtc.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" @onclick="() => RemoveLocation(location.Id)">Remove</button>
+                                <button class="btn btn-warning btn-sm" @onclick="() => EditLocation(location)">Edit</button>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+
+            <nav aria-label="Page navigation example">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @(hasPreviousPage ? "" : "disabled")">
+                        <a class="page-link" @onclick="LoadPreviousPage">Previous</a>
+                    </li>
+                    <li class="page-item @(hasNextPage ? "" : "disabled")">
+                        <a class="page-link" @onclick="LoadNextPage">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        }
+
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    private int currentPage = 1;
+    private bool hasNextPage = true;
+    private bool hasPreviousPage = true;
+    private readonly int pageSize = 10;
+    private List<LocationViewResponse> locations = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        
+        var user = authState.User;
+        
+        if (!user.Identity.IsAuthenticated || !user.IsInRole("Admin"))
+        {
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            await LoadLocations();
+        }
+    }
+
+    private async Task LoadLocations()
+    {
+        var token = await (AuthenticationStateProvider as AuthStateProvider)!.GetTokenAsync();
+        HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+        var response = await HttpClient.GetFromJsonAsync<List<LocationViewResponse>>($"locations?pagesize={pageSize}&pagenumber={currentPage}&showDeleted=true");
+        locations = response!;
+
+        hasNextPage = locations.Count == pageSize;
+        hasPreviousPage = currentPage > 1;
+    }
+
+    private async Task LoadNextPage()
+    {
+        currentPage++;
+        await LoadLocations();
+    }
+
+    private async Task LoadPreviousPage()
+    {
+        currentPage--;
+        await LoadLocations();
+    }
+
+    private async Task RemoveLocation(string locationId)
+    {
+        var token = await LocalStorageService.GetItemAsync<string>("token");
+        HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+        var response = await HttpClient.DeleteAsync($"/locations/{locationId}");
+        if (response.IsSuccessStatusCode)
+        {
+            await LoadLocations();
+        }
+    }
+    
+    private async Task EditLocation(LocationViewResponse location)
+    {
+        var token = await LocalStorageService.GetItemAsync<string>("token");
+        HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+        var response = await HttpClient.PutAsJsonAsync($"/locations/{location.Id}", location);
+        if (response.IsSuccessStatusCode)
+        {
+            await LoadLocations();
+        }
+    }
+}

@@ -1,0 +1,135 @@
+﻿@page "/categories"
+@using Microsoft.AspNetCore.Authorization
+@using BitEvents.UI.Models.Responses
+@using BitEvents.UI.Shared
+@using Blazored.LocalStorage
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject HttpClient HttpClient
+@inject ILocalStorageService LocalStorageService
+@inject NavigationManager NavigationManager
+@attribute [Authorize(Roles = "Admin")]
+
+<h3 class="mb-4">Categories</h3>
+
+<AuthorizeView>
+    <Authorized>
+        @if (categories.Count == 0)
+        {
+            <p>Loading...</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered">
+                    <thead class="table-dark">
+                    <tr>
+                        <th>Id</th>
+                        <th>Name</th>
+                        <th>Created at</th>
+                        <th>Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var category in categories)
+                    {
+                        <tr>
+                            <td>@category.Id</td>
+                            <td><input type="text" @bind="@category.Name" /></td>
+                            <td>@category.CreatedAtUtc.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" @onclick="() => RemoveCategory(category.Id)">Remove</button>
+                                <button class="btn btn-warning btn-sm" @onclick="() => EditCategory(category)">Edit</button>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+
+            <nav aria-label="Page navigation example">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @(hasPreviousPage ? "" : "disabled")">
+                        <a class="page-link" @onclick="LoadPreviousPage">Previous</a>
+                    </li>
+                    <li class="page-item @(hasNextPage ? "" : "disabled")">
+                        <a class="page-link" @onclick="LoadNextPage">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        }
+
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    private int currentPage = 1;
+    private bool hasNextPage = true;
+    private bool hasPreviousPage = true;
+    private readonly int pageSize = 10;
+    private List<CategoryViewResponse> categories = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+        var user = authState.User;
+
+        if (!user.Identity.IsAuthenticated || !user.IsInRole("Admin"))
+        {
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            await LoadLocations();
+        }
+    }
+
+    private async Task LoadLocations()
+    {
+        var token = await (AuthenticationStateProvider as AuthStateProvider)!.GetTokenAsync();
+        HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+        var response = await HttpClient.GetFromJsonAsync<List<CategoryViewResponse>>($"categories?pagesize={pageSize}&pagenumber={currentPage}&showDeleted=true");
+        categories = response!;
+
+        hasNextPage = categories.Count == pageSize;
+        hasPreviousPage = currentPage > 1;
+    }
+
+    private async Task LoadNextPage()
+    {
+        currentPage++;
+        await LoadLocations();
+    }
+
+    private async Task LoadPreviousPage()
+    {
+        currentPage--;
+        await LoadLocations();
+    }
+
+    private async Task RemoveCategory(string categoryId)
+    {
+        var token = await LocalStorageService.GetItemAsync<string>("token");
+        HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+        var response = await HttpClient.DeleteAsync($"/categories/{categoryId}");
+        if (response.IsSuccessStatusCode)
+        {
+            await LoadLocations();
+        }
+    }
+    
+    private async Task EditCategory(CategoryViewResponse category)
+    {
+        var token = await LocalStorageService.GetItemAsync<string>("token");
+        HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+        var response = await HttpClient.PutAsJsonAsync($"/categories/{category.Id}", category);
+        if (response.IsSuccessStatusCode)
+        {
+            await LoadLocations();
+        }
+    }
+
+}
