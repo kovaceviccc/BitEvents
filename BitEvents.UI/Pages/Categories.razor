@@ -3,6 +3,7 @@
 @using BitEvents.UI.Models.Responses
 @using BitEvents.UI.Shared
 @using Blazored.LocalStorage
+@using BitEvents.UI.Models.Requests
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject HttpClient HttpClient
 @inject ILocalStorageService LocalStorageService
@@ -13,6 +14,14 @@
 
 <AuthorizeView>
     <Authorized>
+        <button @onclick="ToggleCategoryInputField">Add New Category</button>
+        
+        @if (showCategoryInput)
+        {
+            <input @bind="newCategoryName" placeholder="Enter category name" />
+            <button @onclick="AddNewCategory">Submit</button>
+        }
+        
         @if (categories.Count == 0)
         {
             <p>Loading...</p>
@@ -34,7 +43,7 @@
                     {
                         <tr>
                             <td>@category.Id</td>
-                            <td><input type="text" @bind="@category.Name" /></td>
+                            <td><input type="text" @bind="@category.Name"/></td>
                             <td>@category.CreatedAtUtc.ToString("dd/MM/yyyy")</td>
                             <td>
                                 <button class="btn btn-danger btn-sm" @onclick="() => RemoveCategory(category.Id)">Remove</button>
@@ -68,6 +77,30 @@
     private readonly int pageSize = 10;
     private List<CategoryViewResponse> categories = new();
 
+    private bool showCategoryInput = false;
+    private string newCategoryName = string.Empty;
+
+    private void ToggleCategoryInputField()
+    {
+        showCategoryInput = !showCategoryInput;
+    }
+
+    private async Task AddNewCategory()
+    {
+        var token = await LocalStorageService.GetItemAsync<string>("token");
+        HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+        var newCategory = new CategoryCreateRequest() { Name = newCategoryName };
+        var response = await HttpClient.PostAsJsonAsync("/categories", newCategory);
+
+        if (response.IsSuccessStatusCode)
+        {
+            newCategoryName = string.Empty;
+            showCategoryInput = false;
+            await LoadCategories();
+        }
+    }
+    
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -80,11 +113,11 @@
         }
         else
         {
-            await LoadLocations();
+            await LoadCategories();
         }
     }
 
-    private async Task LoadLocations()
+    private async Task LoadCategories()
     {
         var token = await (AuthenticationStateProvider as AuthStateProvider)!.GetTokenAsync();
         HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
@@ -99,13 +132,13 @@
     private async Task LoadNextPage()
     {
         currentPage++;
-        await LoadLocations();
+        await LoadCategories();
     }
 
     private async Task LoadPreviousPage()
     {
         currentPage--;
-        await LoadLocations();
+        await LoadCategories();
     }
 
     private async Task RemoveCategory(string categoryId)
@@ -116,7 +149,7 @@
         var response = await HttpClient.DeleteAsync($"/categories/{categoryId}");
         if (response.IsSuccessStatusCode)
         {
-            await LoadLocations();
+            await LoadCategories();
         }
     }
     
@@ -128,7 +161,7 @@
         var response = await HttpClient.PutAsJsonAsync($"/categories/{category.Id}", category);
         if (response.IsSuccessStatusCode)
         {
-            await LoadLocations();
+            await LoadCategories();
         }
     }
 

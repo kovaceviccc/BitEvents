@@ -3,6 +3,7 @@
 @using BitEvents.UI.Models.Responses
 @using BitEvents.UI.Shared
 @using Blazored.LocalStorage
+@using BitEvents.UI.Models.Requests
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject HttpClient HttpClient
 @inject ILocalStorageService LocalStorageService
@@ -13,6 +14,15 @@
 
 <AuthorizeView>
     <Authorized>
+        
+        <button @onclick="ToggleInputField">Add New Location</button>
+            
+            @if (showInput)
+            {
+                <input @bind="newLocationName" placeholder="Enter location name" />
+                <button @onclick="AddNewLocation">Submit</button>
+            }
+        
         @if (locations.Count == 0)
         {
             <p>Loading...</p>
@@ -34,7 +44,7 @@
                     {
                         <tr>
                             <td>@location.Id</td>
-                            <td><input type="text" @bind="@location.Name" /></td>
+                            <td><input type="text" @bind="@location.Name"/></td>
                             <td>@location.CreatedAtUtc.ToString("dd/MM/yyyy")</td>
                             <td>
                                 <button class="btn btn-danger btn-sm" @onclick="() => RemoveLocation(location.Id)">Remove</button>
@@ -68,6 +78,30 @@
     private readonly int pageSize = 10;
     private List<LocationViewResponse> locations = new();
 
+    private bool showInput = false;
+    private string newLocationName = string.Empty;
+
+    private void ToggleInputField()
+    {
+        showInput = !showInput;
+    }
+
+    private async Task AddNewLocation()
+    {
+        var token = await LocalStorageService.GetItemAsync<string>("token");
+        HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+        var newLocation = new LocationCreateRequest() { Name = newLocationName };
+        var response = await HttpClient.PostAsJsonAsync("/locations", newLocation);
+
+        if (response.IsSuccessStatusCode)
+        {
+            newLocationName = string.Empty;
+            showInput = false;
+            await LoadLocations();
+        }
+    }
+    
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
